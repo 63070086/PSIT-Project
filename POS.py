@@ -36,6 +36,70 @@ class main:
         self.item_png2 = [png1.subsample(6), png2.subsample(6), png3.subsample(6), png4.subsample(6), png5.subsample(6), png6.subsample(6), 
                         png7.subsample(6), png8.subsample(6), png9.subsample(6), png10.subsample(6), png11.subsample(6), png12.subsample(6), 
                         png13.subsample(6), png14.subsample(6), png15.subsample(6), png6.subsample(6), png17.subsample(6), png18.subsample(6)]
+        #เคลียร์ object ที่ส่งมาจากการเรียกใช้ win_clr(x)
+        def win_clr(main_frame):
+            for i in main_frame.winfo_children():
+                i.destroy()
+
+        #หน้าต่างเลือกรายการอาหารหรือเครื่องดื่มลงรายการอาหาร
+        def win_order():
+
+            #เคลียร์รายการอาหาร
+            def clear():
+                bill['state'] = 'normal'
+                bill.delete("1.0", END)
+                bill['state'] = 'disable'
+                self.sum_item = []
+
+            #บันทึกรายการอาหาร
+            def save():
+                if table_box.current() == -1:
+                    messagebox.showinfo("Table not select", "Please Select a table")
+                else:
+                    self.sum_order[table_box.current()] += self.sum_item
+                    bill['state'] = 'normal'
+                    bill.delete("1.0", END)
+                    bill['state'] = 'disable'
+                    self.sum_item = []
+            
+            #แสดงสิ่งที่กดเลือกแต่ละรายการลงหน้าแสดงผล
+            def sent(item):
+                bill['state'] = 'normal'
+                bill.insert(END, "%s\n %s\t\t\t\t\t\t\t%d\n"%("-"*84, item[0], item[1]))
+                self.sum_item += [item]
+                bill['state'] = 'disable'
+            win_clr(main_frame)
+            tab_left = Frame(main_frame)
+            tab_left.pack(side=LEFT, fill=BOTH, expand=True)
+            tab_right = Frame(main_frame)
+            tab_right.pack(side=LEFT, fill=BOTH)
+            canvas_left = Canvas(tab_left)
+            view_y = Scrollbar(tab_left, orient=VERTICAL, command=canvas_left.yview)
+            canvas_item = Frame(canvas_left, bg='white')
+            canvas_item.pack(side=LEFT, fill=BOTH, expand=True)
+            count = 0
+            for row in range(0, 18):
+                btn = Button(canvas_item, image=self.item_png3[count], compound=TOP, text='\n%s'%self.name[count], bg="#ff2e63", font=self.font)
+                btn.config(command=lambda x=count: sent(self.name[x]))
+                btn.grid(row=row//3, column=row%3, ipadx=12, ipady=12, pady=(24, 24), padx=(24, 24))
+                count += 1
+            canvas_left.create_window(0, 0, anchor=NW, window=canvas_item)
+            canvas_left.update_idletasks()
+            canvas_left.configure(scrollregion=canvas_left.bbox(ALL), yscrollcommand=view_y.set)
+            canvas_left.pack(side=LEFT, fill=BOTH, expand=True)
+            view_y.pack(side=RIGHT, fill=Y)
+            label = Label(tab_right, text='Table', pady=12, font=self.font)
+            label.grid(row=0, column=0)
+            table_box = ttk.Combobox(tab_right, values=(1, 2, 3, 4, 5, 6, 7, 8, 9))
+            table_box.grid(row=0, column=1)
+            bill = Text(tab_right, bg="#f9ed69", width=64, font=self.font)
+            bill['state'] = 'disable'
+            bill.grid(row=1, columnspan=2)
+            save_btn = Button(tab_right, text="Save", bg="#a7ff83", command=lambda : save())
+            save_btn.grid(row=2, column=0, ipadx=24, ipady=12, pady=24)
+            cancel_btn = Button(tab_right, text="Cancel", bg="#ff6464", command=lambda : clear())
+            cancel_btn.grid(row=2, column=1, ipadx=24, ipady=12, pady=24)
+
         #เริ่มกระบวนการทำงานของหน้าโปรแกรม
         win.state('zoom')
         title = Label(win, text="POS-ORDER-RESTAURANT", bg="#1d3557", fg="white", relief=RAISED, font=self.font)
@@ -44,7 +108,7 @@ class main:
         menu.pack(fill=X, side=BOTTOM)
         for i in (range(0, 4)):
             menu.update()
-            menu_cm = i == 0 and None or i == 1 and None or i == 2 and None or i == 3 and win.quit
+            menu_cm = i == 0 and win_order or i == 1 and None or i == 2 and None or i == 3 and win.quit
             menu_btn = Button(menu, image=self.menu_png[i], bg="#a8dadc", compound=TOP, text="%s"%(self.menu_txt[i]), font=self.font)
             menu_btn.config(width=menu.winfo_width()//12, command=menu_cm)
             menu_btn.grid(row=0, column=i, ipadx=menu.winfo_width()//12)
