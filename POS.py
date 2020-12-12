@@ -36,11 +36,75 @@ class main:
         self.item_png2 = [png1.subsample(6), png2.subsample(6), png3.subsample(6), png4.subsample(6), png5.subsample(6), png6.subsample(6), 
                         png7.subsample(6), png8.subsample(6), png9.subsample(6), png10.subsample(6), png11.subsample(6), png12.subsample(6), 
                         png13.subsample(6), png14.subsample(6), png15.subsample(6), png6.subsample(6), png17.subsample(6), png18.subsample(6)]
+
         #เคลียร์ object ที่ส่งมาจากการเรียกใช้ win_clr(x)
         def win_clr(main_frame):
             for i in main_frame.winfo_children():
                 i.destroy()
 
+        #หน้าต่าง Display order ของแต่ละโต๊ะ
+        def win_show():
+            self.lock = 0
+            #Order ของโต๊ะโดยรับค่าโต๊ะ(order)แล้วนำ order ไป get in sum_order
+            def show_order(order):
+                win_clr(tabc)
+                win_clr(tabr)
+
+                #เพิ่มจำนวนอาหารหรือเครื่องดื่ม
+                def changep(am_item):
+                    pass
+                #ลดจำนวนอาหารหรือเครื่องดื่ม
+                def changem(am_item):
+                    pass
+                
+                #ลบอาหารหรือเครื่องดื่มนั้นออกจากรายการ
+                def changed(am_item):
+                    pass
+                
+                #ลูปแสดงรายการอาหารหรือเครื่องดื่มทั้งหมดออกมา
+                def cal_btn():
+                    self.order = self.sum_order.get(order)
+                    self.order = sorted(list(set([(self.order.count(j), j[0], j[1]) for j in self.order])), key=lambda x: x[1])
+                    row_item = Frame(tabc, bg='#393e46')
+                    row_item.pack(side=LEFT, fill=BOTH)
+                    for i in self.order:
+                        lb_png = Label(row_item, image=self.item_png2[self.name.index([i[1], i[2]])], compound=LEFT, text="\t%s"%(i[1]), font=self.font, width=360, anchor=W)
+                        lb_png.grid(row=self.order.index(i), column=0, padx=24, pady=12)
+                        btn_minus = Button(row_item, image=self.menu_png[5], command=lambda i=i: changem(i))
+                        btn_minus.grid(row=self.order.index(i), column=2, padx=24, pady=12)
+                        lb_am = Label(row_item, text="%d"%(i[0]), font=self.font)
+                        lb_am.grid(row=self.order.index(i), column=3, padx=24, pady=12)
+                        btn_plus = Button(row_item, image=self.menu_png[4], command=lambda i=i: changep(i))
+                        btn_plus.grid(row=self.order.index(i), column=4, padx=24, pady=12)
+                        btn_del = Button(row_item, image=self.menu_png[6], command=lambda i=i:changed(i))
+                        btn_del.grid(row=self.order.index(i), column=5, padx=24, pady=12)
+                    tabc.create_window(0, 0, anchor=NW, window=row_item)
+                    tabc.update_idletasks()
+                    tabc.configure(scrollregion=tabc.bbox(ALL), yscrollcommand=view_y.set)
+                    view_y.pack(side=RIGHT, fill=Y)
+                    tabc.pack(side=LEFT, fill=BOTH, expand=True)
+                cal_btn()
+
+            #ลูปแสดงรายการโต๊ะที่บอกสถานะมีหรือไม่มีรายการอาหาร
+            def table():
+                for i in range(0, 9):
+                    table = Button(tabl, text="TABLE %d"%(i+1), relief=RAISED)
+                    table.pack(ipadx=36, ipady=12, pady=9, padx=9)
+                    if self.sum_order.get(i) == []:
+                        table['bg'] = 'gray'
+                    else:
+                        table['bg'] = 'skyblue2'
+                        table['command'] = lambda i=i: show_order(i)
+            win_clr(main_frame)
+            tabl = Frame(main_frame, bg='green')
+            tabl.pack(side=LEFT, fill=BOTH)
+            table()
+            frame_c = Frame(main_frame)
+            frame_c.pack(side=LEFT, fill=BOTH, expand=True)
+            tabc = Canvas(frame_c, bg='#393e46')
+            view_y = Scrollbar(frame_c, orient=VERTICAL, command=tabc.yview)
+            tabr = Frame(main_frame, bg='red')
+            tabr.pack(fill=BOTH, expand=True)
         #หน้าต่างเลือกรายการอาหารหรือเครื่องดื่มลงรายการอาหาร
         def win_order():
 
@@ -108,7 +172,7 @@ class main:
         menu.pack(fill=X, side=BOTTOM)
         for i in (range(0, 4)):
             menu.update()
-            menu_cm = i == 0 and win_order or i == 1 and None or i == 2 and None or i == 3 and win.quit
+            menu_cm = i == 0 and win_order or i == 1 and None or i == 2 and win_show or i == 3 and win.quit
             menu_btn = Button(menu, image=self.menu_png[i], bg="#a8dadc", compound=TOP, text="%s"%(self.menu_txt[i]), font=self.font)
             menu_btn.config(width=menu.winfo_width()//12, command=menu_cm)
             menu_btn.grid(row=0, column=i, ipadx=menu.winfo_width()//12)
