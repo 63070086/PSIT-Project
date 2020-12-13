@@ -49,17 +49,66 @@ class main:
             def show_order(order):
                 win_clr(tabc)
                 win_clr(tabr)
+                bill_btn = Button(tabr, text="CHECK BILL", bg="#a7ff83", command=lambda : show_bill(order))
+                bill_btn.pack(ipadx=120, padx=12, pady=12, ipady=12)
+
+                #เช็คบิลแล้วบันทึกลงข้อมูล
+                def show_bill(order):
+                    self.lock = 1
+                    bill_btn.destroy()
+                    bill_lb = Label(tabr, text="TABLE %d NO.%04d"%(order+1, self.key))
+                    bill_lb.pack(side=TOP, fill=X, padx=12, pady=12)
+                    bill_txt = Text(tabr, width=60, font=self.font)
+                    bill_txt.pack()
+                    now = datetime.datetime.now()
+                    dt_order = [now.strftime("%Y"), now.strftime("%m"), now.strftime("%d"), now.strftime("%H:%M")]
+                    bill_txt.insert(END, now.strftime("\nDate and Time \t %Y-%m-%d %H:%M\n\n"))
+                    sum_price = 0
+                    for i in self.order:
+                        bill_txt.insert(END, "%s \t\t\t %d \t\t %d \t\t\n"%(i[1], i[0], i[0]*i[2]))
+                        sum_price += i[0]*i[2]
+                    bill_txt.insert(END, "\nTotal Baht\t\t\t\t\t%d\n"%(sum_price))
+                    lb_cash = Label(tabr, text="Cash input", font=self.font)
+                    lb_cash.pack(side=LEFT, pady=12, padx=12)
+                    cash_input = Entry(tabr)
+                    cash_input.pack(side=LEFT, pady=12, padx=12)
+                    bill_txt['state'] = 'disable'
 
                 #เพิ่มจำนวนอาหารหรือเครื่องดื่ม
                 def changep(am_item):
-                    pass
+                    if am_item[0] >= 20:
+                        messagebox.showinfo("Limit", "Please Plus less than 20")
+                    else:
+                        self.sum_order[order] += [[am_item[1], am_item[2]]]
+                        win_clr(tabc)
+                        cal_btn()
+                    if self.lock == 1:
+                        win_clr(tabr)
+                        show_bill(order)
                 #ลดจำนวนอาหารหรือเครื่องดื่ม
                 def changem(am_item):
-                    pass
+                    if am_item[0] == 1:
+                        messagebox.showinfo("Limit", "Please minus more than 1")
+                    else:
+                        self.sum_order[order].remove([am_item[1], am_item[2]])
+                        win_clr(tabc)
+                        cal_btn()
+                    if self.lock == 1:
+                        win_clr(tabr)
+                        show_bill(order)
                 
                 #ลบอาหารหรือเครื่องดื่มนั้นออกจากรายการ
                 def changed(am_item):
-                    pass
+                    self.sum_order[order] = [i for i in self.sum_order[order] if i != [am_item[1], am_item[2]]]
+                    if self.sum_order[order] == []:
+                        win_clr(tabl)
+                        win_clr(tabc)
+                        table()
+                    win_clr(tabc)
+                    cal_btn()
+                    if self.lock == 1:
+                        win_clr(tabr)
+                        show_bill(order)
                 
                 #ลูปแสดงรายการอาหารหรือเครื่องดื่มทั้งหมดออกมา
                 def cal_btn():
