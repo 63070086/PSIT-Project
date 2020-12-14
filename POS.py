@@ -45,12 +45,17 @@ class main:
         #เมนูแสดงรายการบิลที่ทำการเช็คout แล้ว
         def win_bill():
             win_clr(main_frame)
+            tab_bot = Frame(main_frame, bg="red")
+            tab_bot.pack(side=BOTTOM)
+            cv_bot = Canvas(tab_bot, bg='red')
+            cv_bot.pack(fill=X)
             tab = Frame(main_frame)
             tab.pack(fill=BOTH, expand=True)
             cv_bill = Canvas(tab)
             view_y = Scrollbar(tab, orient=VERTICAL, command=cv_bill.yview)
             cv_top = Frame(cv_bill, bg='black')
             cv_top.pack(fill=BOTH, padx=12, pady=12, expand=True)
+            sum_price = 0
             for i in self.sum_bill:
                 row = Frame(cv_top)
                 row.pack(side=TOP, fill=X)
@@ -59,9 +64,12 @@ class main:
                 txt_bill = Text(row, font=self.font, height=len(i[3]))
                 txt_bill.pack(side=LEFT, pady=12, padx=12)
                 for j in i[3]:
-                    txt_bill.insert(END, "\t%s\t\t\t%d\t\t\t%d\t\t\t\n%s\n"%(j[1], j[0], j[0]*j[2], "-"*101))
+                    txt_bill.insert(END, "\t%s\t\t\t%d\t\t\t%d\t\t\t%s\n"%(j[1], j[0], j[0]*j[2], "-"*101))
                 lb_bill_right = Label(row, text="Amount %d baht\tDate and Time %s-%s-%s-%s"%(i[4], i[2][0], i[2][1], i[2][2], i[2][3]), font=self.font)
                 lb_bill_right.pack(side=LEFT, padx=12, pady=12)
+                sum_price += i[4]
+            lb_sumary = Button(cv_bot, bg='#a7ff83', text="Summary : %d"%(sum_price), font=self.font)
+            lb_sumary.pack(side=LEFT, ipadx=main_frame.winfo_width()//12, ipady=24)
             cv_bill.create_window(0, 0, anchor=NW, window=cv_top)
             cv_bill.update_idletasks()
             cv_bill.configure(scrollregion=cv_bill.bbox(ALL), yscrollcommand=view_y.set)
@@ -102,6 +110,7 @@ class main:
                     bill_txt.pack()
                     now = datetime.datetime.now()
                     dt_order = [now.strftime("%Y"), now.strftime("%m"), now.strftime("%d"), now.strftime("%H:%M")]
+                    bill_txt.insert(END, now.strftime("\n\tPOS-ORDER-RESTAURANT\n"))
                     bill_txt.insert(END, now.strftime("\nDate and Time \t %Y-%m-%d %H:%M\n\n"))
                     sum_price = 0
                     for i in self.order:
@@ -113,14 +122,14 @@ class main:
                     cash_input = Entry(tabr)
                     cash_input.pack(side=LEFT, pady=12, padx=12)
                     win.bind("<Return>", lambda event: get_cash(cash_input.get()))
-                    btn_cash = Button(tabr, text="input cash", font=self.font, command=lambda : get_cash(cash_input.get()))
+                    btn_cash = Button(tabr, text="input cash", font=self.font, command=lambda : get_cash(cash_input.get()), bg='#c6e377')
                     btn_cash.pack(side=LEFT, pady=12, padx=12)
                     bill_txt['state'] = 'disable'
 
                 #เพิ่มจำนวนอาหารหรือเครื่องดื่ม
                 def changep(am_item):
                     if am_item[0] >= 20:
-                        messagebox.showinfo("Limit", "Please Plus less than 20")
+                        messagebox.showinfo("Limit", "Can't plus more than 20")
                     else:
                         self.sum_order[order] += [[am_item[1], am_item[2]]]
                         win_clr(tabc)
@@ -131,7 +140,7 @@ class main:
                 #ลดจำนวนอาหารหรือเครื่องดื่ม
                 def changem(am_item):
                     if am_item[0] == 1:
-                        messagebox.showinfo("Limit", "Please minus more than 1")
+                        messagebox.showinfo("Limit", "Can't minus less than 1")
                     else:
                         self.sum_order[order].remove([am_item[1], am_item[2]])
                         win_clr(tabc)
@@ -188,14 +197,14 @@ class main:
                         table['bg'] = 'skyblue2'
                         table['command'] = lambda i=i: show_order(i)
             win_clr(main_frame)
-            tabl = Frame(main_frame, bg='green')
+            tabl = Frame(main_frame, bg='#005d6c')
             tabl.pack(side=LEFT, fill=BOTH)
             table()
             frame_c = Frame(main_frame)
             frame_c.pack(side=LEFT, fill=BOTH, expand=True)
             tabc = Canvas(frame_c, bg='#393e46')
             view_y = Scrollbar(frame_c, orient=VERTICAL, command=tabc.yview)
-            tabr = Frame(main_frame, bg='red')
+            tabr = Frame(main_frame, bg='#ff4d4d')
             tabr.pack(fill=BOTH, expand=True)
         #หน้าต่างเลือกรายการอาหารหรือเครื่องดื่มลงรายการอาหาร
         def win_order():
