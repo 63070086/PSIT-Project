@@ -42,6 +42,32 @@ class main:
             for i in main_frame.winfo_children():
                 i.destroy()
 
+        #เมนูแสดงรายการบิลที่ทำการเช็คout แล้ว
+        def win_bill():
+            win_clr(main_frame)
+            tab = Frame(main_frame)
+            tab.pack(fill=BOTH, expand=True)
+            cv_bill = Canvas(tab)
+            view_y = Scrollbar(tab, orient=VERTICAL, command=cv_bill.yview)
+            cv_top = Frame(cv_bill, bg='black')
+            cv_top.pack(fill=BOTH, padx=12, pady=12, expand=True)
+            for i in self.sum_bill:
+                row = Frame(cv_top)
+                row.pack(side=TOP, fill=X)
+                lb_bill_left = Label(row, text="No.%s\t\tTable:%d"%(i[0], i[1]), font=self.font)
+                lb_bill_left.pack(side=LEFT, padx=12, pady=12)
+                txt_bill = Text(row, font=self.font, height=len(i[3]))
+                txt_bill.pack(side=LEFT, pady=12, padx=12)
+                for j in i[3]:
+                    txt_bill.insert(END, "\t%s\t\t\t%d\t\t\t%d\t\t\t\n%s\n"%(j[1], j[0], j[0]*j[2], "-"*101))
+                lb_bill_right = Label(row, text="Amount %d baht\tDate and Time %s-%s-%s-%s"%(i[4], i[2][0], i[2][1], i[2][2], i[2][3]), font=self.font)
+                lb_bill_right.pack(side=LEFT, padx=12, pady=12)
+            cv_bill.create_window(0, 0, anchor=NW, window=cv_top)
+            cv_bill.update_idletasks()
+            cv_bill.configure(scrollregion=cv_bill.bbox(ALL), yscrollcommand=view_y.set)
+            view_y.pack(side=RIGHT, fill=Y)
+            cv_bill.pack(fill=BOTH, expand=True)
+
         #หน้าต่าง Display order ของแต่ละโต๊ะ
         def win_show():
             self.lock = 0
@@ -54,6 +80,20 @@ class main:
 
                 #เช็คบิลแล้วบันทึกลงข้อมูล
                 def show_bill(order):
+
+                    #คิดเงินทอนจาก การป้อน
+                    def get_cash(cash):
+                        if not cash.isnumeric():
+                            messagebox.showinfo("Wrong input", "Please input Again")
+                        elif int(cash) < sum_price:
+                            messagebox.showinfo("Not enough money", "Please input Again")
+                        else:
+                            cash = int(cash)
+                            messagebox.showinfo("Change", "Cash: %d \t\t Change: %d"%(cash, cash-sum_price))
+                            self.sum_bill.append(["%.4d"%self.key, order+1, dt_order, self.order, sum_price])
+                            self.sum_order[order] = []
+                            self.key += 1
+                            win_show()
                     self.lock = 1
                     bill_btn.destroy()
                     bill_lb = Label(tabr, text="TABLE %d NO.%04d"%(order+1, self.key))
@@ -72,6 +112,9 @@ class main:
                     lb_cash.pack(side=LEFT, pady=12, padx=12)
                     cash_input = Entry(tabr)
                     cash_input.pack(side=LEFT, pady=12, padx=12)
+                    win.bind("<Return>", lambda event: get_cash(cash_input.get()))
+                    btn_cash = Button(tabr, text="input cash", font=self.font, command=lambda : get_cash(cash_input.get()))
+                    btn_cash.pack(side=LEFT, pady=12, padx=12)
                     bill_txt['state'] = 'disable'
 
                 #เพิ่มจำนวนอาหารหรือเครื่องดื่ม
@@ -138,7 +181,7 @@ class main:
             def table():
                 for i in range(0, 9):
                     table = Button(tabl, text="TABLE %d"%(i+1), relief=RAISED)
-                    table.pack(ipadx=36, ipady=12, pady=9, padx=9)
+                    table.pack(ipadx=36, ipady=(main_frame.winfo_height()-menu.winfo_height())//36, pady=6, padx=6)
                     if self.sum_order.get(i) == []:
                         table['bg'] = 'gray'
                     else:
@@ -156,7 +199,7 @@ class main:
             tabr.pack(fill=BOTH, expand=True)
         #หน้าต่างเลือกรายการอาหารหรือเครื่องดื่มลงรายการอาหาร
         def win_order():
-
+            
             #เคลียร์รายการอาหาร
             def clear():
                 bill['state'] = 'normal'
@@ -205,7 +248,10 @@ class main:
             label.grid(row=0, column=0)
             table_box = ttk.Combobox(tab_right, values=(1, 2, 3, 4, 5, 6, 7, 8, 9))
             table_box.grid(row=0, column=1)
-            bill = Text(tab_right, bg="#f9ed69", width=64, font=self.font)
+            main_frame.update()
+            canvas_item.update()
+            tab_left.update()
+            bill = Text(tab_right, bg="#f9ed69", width=((main_frame.winfo_width()-canvas_item.winfo_width())//8), font=self.font)
             bill['state'] = 'disable'
             bill.grid(row=1, columnspan=2)
             save_btn = Button(tab_right, text="Save", bg="#a7ff83", command=lambda : save())
@@ -214,18 +260,21 @@ class main:
             cancel_btn.grid(row=2, column=1, ipadx=24, ipady=12, pady=24)
 
         #เริ่มกระบวนการทำงานของหน้าโปรแกรม
-        win.state('zoom')
-        title = Label(win, text="POS-ORDER-RESTAURANT", bg="#1d3557", fg="white", relief=RAISED, font=self.font)
-        title.pack(fill=X)
-        menu = Frame(win, bg="#457b9d")
+        win.state("zoomed")
+        win.title("POS-ORDER-RESTAURANT")
+        win.bind("<F11>", lambda x: win.attributes("-fullscreen", True))
+        win.bind("<Escape>", lambda x: win.attributes("-fullscreen", False))
+        head = Label(win, text="POS-ORDER-RESTAURANT", bg="#264653", fg="#f1faee", relief=RAISED, font=self.font)
+        head.pack(fill=X)
+        menu = Frame(win)
         menu.pack(fill=X, side=BOTTOM)
         for i in (range(0, 4)):
             menu.update()
-            menu_cm = i == 0 and win_order or i == 1 and None or i == 2 and win_show or i == 3 and win.quit
-            menu_btn = Button(menu, image=self.menu_png[i], bg="#a8dadc", compound=TOP, text="%s"%(self.menu_txt[i]), font=self.font)
-            menu_btn.config(width=menu.winfo_width()//12, command=menu_cm)
+            menu_cm = i == 0 and win_order or i == 1 and win_bill or i == 2 and win_show or i == 3 and win.quit
+            menu_btn = Button(menu, image=self.menu_png[i], bg="#e9c46a", compound=TOP, text="%s"%(self.menu_txt[i]), font=self.font)
+            menu_btn.config(command=menu_cm, width=menu.winfo_width()//12)
             menu_btn.grid(row=0, column=i, ipadx=menu.winfo_width()//12)
-        main_frame = Frame(win, bg='black')
+        main_frame = Frame(win, bg='#2a9d8f')
         main_frame.pack(fill=BOTH, expand=TRUE)
 start = main(win)
 win.mainloop()
